@@ -1,0 +1,24 @@
+﻿# Flutter / Dart
+**/delicious-app/.dart_tool/
+**/delicious-app/.flutter-plugins
+**/delicious-app/.packages
+**/delicious-app/build/
+**/delicious-app/.idea/
+**/delicious-app/*.iml
+**/delicious-app/ios/Pods/
+**/delicious-app/ios/.symlinks/
+**/delicious-app/android/.gradle/
+
+# Node.js / Backend
+**/delicious-backend/node_modules/
+**/delicious-backend/.next/
+**/delicious-backend/.env.local
+**/delicious-backend/*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

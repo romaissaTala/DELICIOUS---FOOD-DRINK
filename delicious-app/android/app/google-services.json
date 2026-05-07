@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "80441142941",
+    "project_id": "relax-sounds-97373",
+    "storage_bucket": "relax-sounds-97373.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:80441142941:android:4c626406c6ce8d36b16e74",
+        "android_client_info": {
+          "package_name": "com.example.Delicious_App"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfbFKJ1oy2atxaerXNxrwATg9o7CJwPlU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

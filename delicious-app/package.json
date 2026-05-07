@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@chargily/chargily-pay": "^2.1.0"
+  }
+}
