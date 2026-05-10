@@ -1,36 +1,106 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Delicious Payment Backend
 
-## Getting Started
+Next.js payment processing backend for the Delicious Food & Drink E-commerce App.
 
-First, run the development server:
+## 🚀 Features
+
+- ✅ Chargily Payment Integration (EDAHABIA / CIB)
+- ✅ Payment Session Management
+- ✅ Webhook Handling for Payment Confirmation
+- ✅ Success/Failure Pages
+- ✅ MongoDB Payment Sessions Storage
+- ✅ Deployed on Vercel
+
+## 📋 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/payment/create-session` | Create payment session |
+| POST | `/api/payment/webhook` | Payment confirmation webhook |
+| GET | `/api/payment/verify?sessionId={id}` | Verify payment status |
+
+## 🌐 Frontend Pages
+
+| Page | URL | Description |
+|------|-----|-------------|
+| Success | `/payment/success?orderId={id}` | Payment success page |
+| Failure | `/payment/failure?orderId={id}` | Payment failure page |
+
+## 🛠️ Tech Stack
+
+- Next.js 14 (App Router)
+- TypeScript
+- MongoDB
+- Chargily Payment API
+- Tailwind CSS
+- Deployed on Vercel
+
+## 🏠 Local Development
+
+### Prerequisites
+
+- Node.js 18+
+- MongoDB Atlas account
+- Chargily account
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/romaissaTala/DELICIOUS---FOOD-DRINK.git
+cd delicious-payment-backend
+
+# Install dependencies
+npm install
+
+# Create .env.local file
+cp .env.example .env.local
+
+# Start development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Environment Variables
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+CHARGILY_API_KEY=your_chargily_api_key
+CHARGILY_MODE=test
+MONGODB_URI=your_mongodb_connection_string
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 Deployment
 
-## Learn More
+```bash
+vercel --prod
+```
 
-To learn more about Next.js, take a look at the following resources:
+### Production URL
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+https://delicious-payment-backend.vercel.app
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🔄 Payment Flow
 
-## Deploy on Vercel
+1. User clicks "Pay Now" in Flutter app
+2. Backend creates Chargily checkout session
+3. User redirected to Chargily payment page
+4. User pays with EDAHABIA or CIB card
+5. Chargily sends webhook confirmation
+6. Backend updates order status to "paid"
+7. User redirected to success/failure page
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🧪 Test Cards
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Card Type | Card Number | Expiry | CVV |
+|-----------|-------------|--------|-----|
+| EDAHABIA (Test) | `4444 4444 4444 4444` | Any future | Any |
+| CIB (Test) | `5555 5555 5555 5555` | Any future | Any |
+
+## 📝 License
+
+MIT
+
+## 👤 Author
+
+Romaissa Tala - [GitHub](https://github.com/romaissaTala)
