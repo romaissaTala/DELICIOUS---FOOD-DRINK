@@ -1,0 +1,3 @@
+[submodule "delicious-payment-backend"]
+	path = delicious-payment-backend
+	url = https://github.com/romaissaTala/delicious-payment-backend.git
