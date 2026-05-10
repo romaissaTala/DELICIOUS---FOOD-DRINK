@@ -24,3 +24,6 @@ Thumbs.db
 .idea/
 "delicious-payment-backend/" 
 "delicious-payment-backend/" 
+".env" 
+".env.local" 
+".env.production" 
