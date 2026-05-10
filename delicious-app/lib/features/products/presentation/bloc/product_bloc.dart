@@ -1,12 +1,21 @@
 // lib/features/products/presentation/bloc/product_bloc.dart
 import 'dart:async';
 
+import 'package:Delicious_App/features/products/domain/usecases/get_featured_products_usecase.dart';
+import 'package:Delicious_App/features/products/domain/usecases/get_product_by_id_usecase.dart';
+import 'package:Delicious_App/features/products/domain/usecases/get_products_by_mood_params.dart';
+import 'package:Delicious_App/features/products/domain/usecases/get_products_by_mood_usecase.dart';
+import 'package:Delicious_App/features/products/domain/usecases/get_products_params.dart';
+import 'package:Delicious_App/features/products/domain/usecases/get_products_usecase.dart';
+
+import 'package:Delicious_App/features/products/domain/usecases/refresh_product_cache_usecase.dart';
+import 'package:Delicious_App/features/products/domain/usecases/search_products_usecase.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/product.dart';
-import '../../domain/usecases/product_usecases.dart';
+
 
 part 'product_event.dart';
 part 'product_state.dart';

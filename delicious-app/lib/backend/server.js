@@ -8,7 +8,13 @@ const jwt = require('jsonwebtoken');
 const app = express();
 
 // Middleware
-app.use(cors());
+// In server.js, update CORS to allow all origins (for development)
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 app.use(express.json({ limit: '10mb' }));
 
 // ============================================

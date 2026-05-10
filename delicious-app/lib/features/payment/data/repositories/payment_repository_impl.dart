@@ -6,10 +6,11 @@ import '../datasources/payment_remote_datasource.dart';
 import '../models/payment_method_model.dart';
 import '../models/payment_request_model.dart';
 
+
 class PaymentRepositoryImpl implements PaymentRepository {
-  final PaymentRemoteDataSource remoteDataSource;
+  final PaymentRemoteDataSource remoteDataSource;  // ← Match this name
   
-  const PaymentRepositoryImpl({required this.remoteDataSource});
+  const PaymentRepositoryImpl({required this.remoteDataSource});  // ← Match parameter name
   
   @override
   Future<Either<Failure, List<PaymentMethodModel>>> getPaymentMethods() async {
@@ -38,7 +39,6 @@ class PaymentRepositoryImpl implements PaymentRepository {
   @override
   Future<Either<Failure, PaymentResultModel>> verifyPayment(String sessionId) async {
     try {
-      // ✅ FIXED: Only one argument - sessionId
       final result = await remoteDataSource.verifyPayment(sessionId);
       return Right(result);
     } on DioException catch (e) {

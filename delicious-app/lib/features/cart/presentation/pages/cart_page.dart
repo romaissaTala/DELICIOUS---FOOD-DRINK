@@ -3,6 +3,7 @@ import 'package:Delicious_App/features/cart/widgets/cart_item_widget.dart';
 import 'package:Delicious_App/features/cart/widgets/cart_summary_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../bloc/cart_bloc.dart';
 
 class CartPage extends StatefulWidget {
@@ -105,7 +106,7 @@ class _CartPageState extends State<CartPage> {
                   deliveryFee: 200,
                   total: cart.totalPrice + 200,
                   onCheckout: () {
-                    Navigator.pushNamed(context, '/checkout');
+                    context.push('/checkout');
                   },
                 ),
               ],
@@ -143,7 +144,7 @@ class _CartPageState extends State<CartPage> {
           ElevatedButton(
             onPressed: () {
               // In StatefulWidget, you can access context from widget
-              Navigator.pushReplacementNamed(context, '/home');
+              context.go('/home');
             },
             child: const Text('Browse Products'),
           ),

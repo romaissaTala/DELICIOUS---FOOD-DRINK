@@ -1,20 +1,12 @@
-// lib/core/di/injection.dart
-//
-// Service locator setup for the Delicious app.
-// Run `flutter pub run build_runner build` after adding @injectable
-// annotations to auto-generate injection.config.dart.
-//
-// Usage in main.dart:
-//   await configureDependencies();
-//   runApp(const DeliciousApp());
-
 import 'package:Delicious_App/features/auth/domain/usecases/auth_usecases.dart';
-import 'package:Delicious_App/features/orders/domain/usecases/cancel_order_usecase.dart';
-import 'package:Delicious_App/features/orders/domain/usecases/track_order_usecase.dart';
-import 'package:Delicious_App/features/payment/domain/usecases/initiate_payment_usecase.dart';
-import 'package:Delicious_App/features/payment/domain/usecases/verify_payment_usecase.dart';
-import 'package:Delicious_App/features/payment/presentation/bloc/payment_bloc.dart';
-import 'package:Delicious_App/features/products/domain/usecases/product_usecases.dart';
+import 'package:Delicious_App/features/products/domain/usecases/get_categories_usecase.dart';
+import 'package:Delicious_App/features/products/domain/usecases/get_featured_products_usecase.dart';
+import 'package:Delicious_App/features/products/domain/usecases/get_product_by_id_usecase.dart';
+import 'package:Delicious_App/features/products/domain/usecases/get_products_by_mood_usecase.dart';
+import 'package:Delicious_App/features/products/domain/usecases/get_products_usecase.dart';
+import 'package:Delicious_App/features/products/domain/usecases/refresh_product_cache_usecase.dart';
+import 'package:Delicious_App/features/products/domain/usecases/search_products_usecase.dart';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
@@ -30,10 +22,6 @@ import '../../features/auth/data/datasources/auth_local_datasource.dart';
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
-import '../../features/auth/domain/usecases/login_usecase.dart';
-import '../../features/auth/domain/usecases/register_usecase.dart';
-import '../../features/auth/domain/usecases/face_auth_usecase.dart';
-import '../../features/auth/domain/usecases/biometric_auth_usecase.dart';
 import '../../features/auth/presentation/bloc/auth_bloc.dart';
 
 // ── Products feature ──────────────────────────────────────────────────────────
@@ -41,10 +29,6 @@ import '../../features/products/data/datasources/product_local_datasource.dart';
 import '../../features/products/data/datasources/product_remote_datasource.dart';
 import '../../features/products/data/repositories/product_repository_impl.dart';
 import '../../features/products/domain/repositories/product_repository.dart';
-import '../../features/products/domain/usecases/get_products_usecase.dart' hide GetProductsUseCase;
-import '../../features/products/domain/usecases/get_products_by_mood_usecase.dart';
-import '../../features/products/domain/usecases/get_product_by_id_usecase.dart';
-import '../../features/products/domain/usecases/get_categories_usecase.dart';
 import '../../features/products/presentation/bloc/product_bloc.dart';
 import '../../features/products/presentation/bloc/category_bloc.dart';
 
@@ -67,6 +51,8 @@ import '../../features/orders/domain/repositories/order_repository.dart';
 import '../../features/orders/domain/usecases/place_order_usecase.dart';
 import '../../features/orders/domain/usecases/get_orders_usecase.dart';
 import '../../features/orders/domain/usecases/get_order_by_id_usecase.dart';
+import '../../features/orders/domain/usecases/cancel_order_usecase.dart';
+import '../../features/orders/domain/usecases/track_order_usecase.dart';
 import '../../features/orders/presentation/bloc/order_bloc.dart';
 
 // ── Payment feature ───────────────────────────────────────────────────────────
@@ -74,20 +60,19 @@ import '../../features/payment/data/datasources/payment_remote_datasource.dart';
 import '../../features/payment/data/repositories/payment_repository_impl.dart';
 import '../../features/payment/domain/repositories/payment_repository.dart';
 import '../../features/payment/domain/usecases/get_payment_methods_usecase.dart';
+import '../../features/payment/domain/usecases/initiate_payment_usecase.dart';
+import '../../features/payment/domain/usecases/verify_payment_usecase.dart';
+import '../../features/payment/presentation/bloc/payment_bloc.dart';
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// Global service locator instance.
-/// Access anywhere: `sl<AuthBloc>()`, `sl<Dio>()`, etc.
 final sl = GetIt.instance;
 
-/// API base URL — change per environment.
 const String _baseUrl = String.fromEnvironment(
   'API_BASE_URL',
-  defaultValue: 'http://10.0.2.2:5000/api', // Android emulator localhost
+  defaultValue: 'http://10.0.2.2:5000/api',
 );
 
-/// Call once in main() before runApp().
 Future<void> configureDependencies() async {
   await _registerExternal();
   _registerCore();
@@ -99,53 +84,42 @@ Future<void> configureDependencies() async {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. External / third-party
-// ─────────────────────────────────────────────────────────────────────────────
 
 Future<void> _registerExternal() async {
-  // Hive boxes — opened once, reused everywhere
   await Hive.initFlutter();
-
-  // Register Hive box adapters here before opening boxes:
-  // Hive.registerAdapter(UserModelAdapter());
-  // Hive.registerAdapter(CartItemModelAdapter());
 
   final cartBox = await Hive.openBox('cart_box');
   final userBox = await Hive.openBox('user_box');
   final settingsBox = await Hive.openBox('settings_box');
+  final productBox = await Hive.openBox('product_box');  // ← ADDED
 
   sl.registerSingleton<Box>(cartBox, instanceName: 'cartBox');
   sl.registerSingleton<Box>(userBox, instanceName: 'userBox');
   sl.registerSingleton<Box>(settingsBox, instanceName: 'settingsBox');
+  sl.registerSingleton<Box>(productBox, instanceName: 'productBox');
 
-  // Flutter Secure Storage — for JWT token
   sl.registerLazySingleton<FlutterSecureStorage>(
     () => const FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true),
     ),
   );
 
-  // Local Authentication (biometrics / Face ID)
   sl.registerLazySingleton<LocalAuthentication>(() => LocalAuthentication());
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 2. Core (Dio, API client)
-// ─────────────────────────────────────────────────────────────────────────────
 
 void _registerCore() {
-  // Dio interceptor — attaches JWT to every request
   sl.registerLazySingleton<AuthInterceptor>(
     () => AuthInterceptor(secureStorage: sl<FlutterSecureStorage>()),
   );
 
-  // Dio instance
   sl.registerLazySingleton<Dio>(() {
     final dio = Dio(
       BaseOptions(
         baseUrl: _baseUrl,
-        connectTimeout: const Duration(seconds: 10),
-        receiveTimeout: const Duration(seconds: 10),
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
         headers: {'Content-Type': 'application/json'},
       ),
     );
@@ -156,21 +130,18 @@ void _registerCore() {
     return dio;
   });
 
-  // Retrofit client (code-generated)
   sl.registerLazySingleton<DeliciousApiClient>(
     () => DeliciousApiClient(sl<Dio>()),
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. Auth feature
-// ─────────────────────────────────────────────────────────────────────────────
 
 void _registerAuth() {
-  // Datasources
   sl.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(apiClient: sl<DeliciousApiClient>()),
+    () => AuthRemoteDataSourceImpl(dio: sl<Dio>()),
   );
+  
   sl.registerLazySingleton<AuthLocalDataSource>(
     () => AuthLocalDataSourceImpl(
       secureStorage: sl<FlutterSecureStorage>(),
@@ -178,53 +149,50 @@ void _registerAuth() {
     ),
   );
 
-  // Repository
   sl.registerLazySingleton<AuthRepository>(
     () => AuthRepositoryImpl(
-      remoteDataSource: sl<AuthRemoteDataSource>(),
-      localDataSource: sl<AuthLocalDataSource>(),
-    ),
-  );
-
-  // Use cases
-  sl.registerLazySingleton(() => LoginUseCase(sl<AuthRepository>()));
-  sl.registerLazySingleton(() => RegisterUseCase(sl<AuthRepository>()));
-  sl.registerLazySingleton(() => FaceAuthUseCase(sl<AuthRepository>()));
-  sl.registerLazySingleton(
-    () => BiometricAuthUseCase(
-      repository: sl<AuthRepository>(),
+      remote: sl<AuthRemoteDataSource>(),
+      local: sl<AuthLocalDataSource>(),
       localAuth: sl<LocalAuthentication>(),
     ),
   );
 
-  // Bloc — registered as Factory so a fresh instance is created per route
+  sl.registerLazySingleton(() => LoginUseCase(sl<AuthRepository>()));
+  sl.registerLazySingleton(() => RegisterUseCase(sl<AuthRepository>()));
+  sl.registerLazySingleton(() => LogoutUseCase(sl<AuthRepository>()));
+  sl.registerLazySingleton(() => GetCachedUserUseCase(sl<AuthRepository>()));
+  sl.registerLazySingleton(() => GuestLoginUseCase(sl<AuthRepository>()));
+  sl.registerLazySingleton(() => FaceAuthUseCase(sl<AuthRepository>()));
+  sl.registerLazySingleton(() => SaveFaceVectorUseCase(sl<AuthRepository>()));
+  sl.registerLazySingleton(() => BiometricAuthUseCase(sl<AuthRepository>()));
+
   sl.registerFactory(
     () => AuthBloc(
       loginUseCase: sl<LoginUseCase>(),
       registerUseCase: sl<RegisterUseCase>(),
-      faceAuthUseCase: sl<FaceAuthUseCase>(),
+      logoutUseCase: sl<LogoutUseCase>(),
+      getCachedUserUseCase: sl<GetCachedUserUseCase>(),
       biometricAuthUseCase: sl<BiometricAuthUseCase>(),
+      faceAuthUseCase: sl<FaceAuthUseCase>(),
+      saveFaceVectorUseCase: sl<SaveFaceVectorUseCase>(),
+      guestLoginUseCase: sl<GuestLoginUseCase>(),
     ),
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 4. Products feature
-// ─────────────────────────────────────────────────────────────────────────────
 
 void _registerProducts() {
-  // Datasources
   sl.registerLazySingleton<ProductRemoteDataSource>(
     () => ProductRemoteDataSourceImpl(apiClient: sl<DeliciousApiClient>()),
   );
+  
   sl.registerLazySingleton<ProductLocalDataSource>(
     () => ProductLocalDataSourceImpl(
-      // Hive box for cached products (open a dedicated box if needed)
-      settingsBox: sl<Box>(instanceName: 'settingsBox'),
+      productBox: sl<Box>(instanceName: 'productBox'),  // ← FIXED
     ),
   );
 
-  // Repository
   sl.registerLazySingleton<ProductRepository>(
     () => ProductRepositoryImpl(
       remoteDataSource: sl<ProductRemoteDataSource>(),
@@ -232,43 +200,43 @@ void _registerProducts() {
     ),
   );
 
-  // Use cases
   sl.registerLazySingleton(() => GetProductsUseCase(sl<ProductRepository>()));
-  sl.registerLazySingleton(
-      () => GetProductsByMoodUseCase(sl<ProductRepository>()));
-  sl.registerLazySingleton(
-      () => GetProductByIdUseCase(sl<ProductRepository>()));
+  sl.registerLazySingleton(() => GetProductsByMoodUseCase(sl<ProductRepository>()));
+  sl.registerLazySingleton(() => GetProductByIdUseCase(sl<ProductRepository>()));
   sl.registerLazySingleton(() => GetCategoriesUseCase(sl<ProductRepository>()));
+  sl.registerLazySingleton(() => GetFeaturedProductsUseCase(sl<ProductRepository>()));
+  sl.registerLazySingleton(() => SearchProductsUseCase(sl<ProductRepository>()));
+  sl.registerLazySingleton(() => RefreshProductCacheUseCase(sl<ProductRepository>()));
 
-  // Blocs
   sl.registerFactory(
     () => ProductBloc(
       getProducts: sl<GetProductsUseCase>(),
       getProductsByMood: sl<GetProductsByMoodUseCase>(),
       getProductById: sl<GetProductByIdUseCase>(),
+      getFeatured: sl<GetFeaturedProductsUseCase>(),
+      searchProducts: sl<SearchProductsUseCase>(),
+      refreshCache: sl<RefreshProductCacheUseCase>(),
     ),
   );
+  
   sl.registerFactory(
     () => CategoryBloc(getCategories: sl<GetCategoriesUseCase>()),
   );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 5. Cart feature
-// ─────────────────────────────────────────────────────────────────────────────
 
 void _registerCart() {
-  // Datasources
   sl.registerLazySingleton<CartRemoteDataSource>(
     () => CartRemoteDataSourceImpl(apiClient: sl<DeliciousApiClient>()),
   );
+  
   sl.registerLazySingleton<CartLocalDataSource>(
     () => CartLocalDataSourceImpl(
       cartBox: sl<Box>(instanceName: 'cartBox'),
     ),
   );
 
-  // Repository
   sl.registerLazySingleton<CartRepository>(
     () => CartRepositoryImpl(
       remoteDataSource: sl<CartRemoteDataSource>(),
@@ -276,15 +244,13 @@ void _registerCart() {
     ),
   );
 
-  // Use cases
   sl.registerLazySingleton(() => GetCartUseCase(sl<CartRepository>()));
   sl.registerLazySingleton(() => AddToCartUseCase(sl<CartRepository>()));
   sl.registerLazySingleton(() => RemoveFromCartUseCase(sl<CartRepository>()));
   sl.registerLazySingleton(() => UpdateCartItemUseCase(sl<CartRepository>()));
   sl.registerLazySingleton(() => ClearCartUseCase(sl<CartRepository>()));
 
-  // Bloc — Singleton so cart state persists across pages
-  sl.registerLazySingleton(
+  sl.registerFactory(
     () => CartBloc(
       getCart: sl<GetCartUseCase>(),
       addToCart: sl<AddToCartUseCase>(),
@@ -296,29 +262,24 @@ void _registerCart() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 6. Orders feature
-// ─────────────────────────────────────────────────────────────────────────────
+
 void _registerOrders() {
-  // Datasource
   sl.registerLazySingleton<OrderRemoteDataSource>(
     () => OrderRemoteDataSourceImpl(apiClient: sl<DeliciousApiClient>()),
   );
 
-  // Repository
   sl.registerLazySingleton<OrderRepository>(
     () => OrderRepositoryImpl(
       remoteDataSource: sl<OrderRemoteDataSource>(),
     ),
   );
 
-  // Use cases
   sl.registerLazySingleton(() => PlaceOrderUseCase(sl<OrderRepository>()));
   sl.registerLazySingleton(() => GetOrdersUseCase(sl<OrderRepository>()));
   sl.registerLazySingleton(() => GetOrderByIdUseCase(sl<OrderRepository>()));
   sl.registerLazySingleton(() => CancelOrderUseCase(sl<OrderRepository>()));
   sl.registerLazySingleton(() => TrackOrderUseCase(sl<OrderRepository>()));
 
-  // Bloc
   sl.registerFactory(
     () => OrderBloc(
       placeOrder: sl<PlaceOrderUseCase>(),
@@ -329,32 +290,25 @@ void _registerOrders() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 7. Payment feature
-// ─────────────────────────────────────────────────────────────────────────────
+
 void _registerPayment() {
-  // Datasource
   sl.registerLazySingleton<PaymentRemoteDataSource>(
     () => PaymentRemoteDataSourceImpl(
       apiClient: sl<DeliciousApiClient>(),
-      dio: sl<Dio>(),
+      dio: sl<Dio>(),  // ← FIXED: Added required dio parameter
     ),
   );
 
-  // Repository
   sl.registerLazySingleton<PaymentRepository>(
     () => PaymentRepositoryImpl(
-      remoteDataSource: sl<PaymentRemoteDataSource>(),
+      remoteDataSource: sl<PaymentRemoteDataSource>(),  // ← FIXED: Parameter name
     ),
   );
 
-  // Use cases
-  sl.registerLazySingleton(
-      () => GetPaymentMethodsUseCase(sl<PaymentRepository>()));
-  sl.registerLazySingleton(
-      () => InitiatePaymentUseCase(sl<PaymentRepository>()));
+  sl.registerLazySingleton(() => GetPaymentMethodsUseCase(sl<PaymentRepository>()));
+  sl.registerLazySingleton(() => InitiatePaymentUseCase(sl<PaymentRepository>()));
   sl.registerLazySingleton(() => VerifyPaymentUseCase(sl<PaymentRepository>()));
 
-  // Bloc
   sl.registerFactory(
     () => PaymentBloc(
       getPaymentMethods: sl<GetPaymentMethodsUseCase>(),

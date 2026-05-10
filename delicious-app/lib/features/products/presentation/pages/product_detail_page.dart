@@ -4,6 +4,7 @@ import 'package:Delicious_App/features/cart/widgets/add_to_bag_button.dart';
 import 'package:Delicious_App/features/cart/widgets/fly_to_cart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../bloc/product_bloc.dart';
 
 
@@ -295,7 +296,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 child: CartIconButton(
                   key: _cartKey,
                   itemCount: 0,
-                  onTap: () => Navigator.pushNamed(context, '/cart'),
+                  onTap: () => context.push('/cart'),
                 ),
               ),
               

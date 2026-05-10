@@ -1,7 +1,7 @@
 import 'package:Delicious_App/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
+import 'package:go_router/go_router.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -52,13 +52,15 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     context.read<AuthBloc>().add(
-      AuthRegisterRequested(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        name: _nameController.text.trim(),
-        phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
-      ),
-    );
+          AuthRegisterRequested(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            name: _nameController.text.trim(),
+            phone: _phoneController.text.trim().isEmpty
+                ? null
+                : _phoneController.text.trim(),
+          ),
+        );
   }
 
   void _showError(String message) {
@@ -77,7 +79,7 @@ class _RegisterPageState extends State<RegisterPage> {
           );
         }
         if (state is AuthAuthenticated) {
-          Navigator.pushReplacementNamed(context, '/home');
+          context.go('/home');
         }
       },
       builder: (context, state) {
@@ -160,7 +162,9 @@ class _RegisterPageState extends State<RegisterPage> {
                         obscureText: !_isPasswordVisible,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                            _isPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                             color: Colors.grey,
                           ),
                           onPressed: () {
@@ -180,12 +184,15 @@ class _RegisterPageState extends State<RegisterPage> {
                         obscureText: !_isConfirmPasswordVisible,
                         suffixIcon: IconButton(
                           icon: Icon(
-                            _isConfirmPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                            _isConfirmPasswordVisible
+                                ? Icons.visibility
+                                : Icons.visibility_off,
                             color: Colors.grey,
                           ),
                           onPressed: () {
                             setState(() {
-                              _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                              _isConfirmPasswordVisible =
+                                  !_isConfirmPasswordVisible;
                             });
                           },
                         ),
@@ -196,7 +203,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: state is AuthLoading ? null : _handleRegister,
+                          onPressed:
+                              state is AuthLoading ? null : _handleRegister,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange.shade600,
                             foregroundColor: Colors.white,
@@ -211,8 +219,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                   height: 24,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor:
-                                        AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
                                   ),
                                 )
                               : const Text(

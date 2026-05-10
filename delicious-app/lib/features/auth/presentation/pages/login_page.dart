@@ -2,6 +2,7 @@ import 'package:Delicious_App/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:camera/camera.dart';
+import 'package:go_router/go_router.dart';
 import '../widgets/face_auth_dialog.dart';
 
 class LoginPage extends StatefulWidget {
@@ -39,11 +40,11 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
     context.read<AuthBloc>().add(
-      AuthLoginRequested(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      ),
-    );
+          AuthLoginRequested(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          ),
+        );
   }
 
   void _handleBiometricLogin() {
@@ -78,13 +79,12 @@ class _LoginPageState extends State<LoginPage> {
           );
         }
         if (state is AuthAuthenticated || state is AuthGuest) {
-          Navigator.pushReplacementNamed(context, '/home');
+          context.go('/home'); // ✅ Use GoRouter navigation
         }
       },
       builder: (context, state) {
-        final biometricAvailable = state is AuthUnauthenticated
-            ? state.biometricAvailable
-            : false;
+        final biometricAvailable =
+            state is AuthUnauthenticated ? state.biometricAvailable : false;
 
         return Scaffold(
           body: Container(
@@ -164,7 +164,8 @@ class _LoginPageState extends State<LoginPage> {
                           controller: _emailController,
                           keyboardType: TextInputType.emailAddress,
                           decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.email, color: Colors.green.shade700),
+                            prefixIcon:
+                                Icon(Icons.email, color: Colors.green.shade700),
                             hintText: 'Email',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(16),
@@ -196,7 +197,8 @@ class _LoginPageState extends State<LoginPage> {
                           controller: _passwordController,
                           obscureText: !_isPasswordVisible,
                           decoration: InputDecoration(
-                            prefixIcon: Icon(Icons.lock, color: Colors.green.shade700),
+                            prefixIcon:
+                                Icon(Icons.lock, color: Colors.green.shade700),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _isPasswordVisible
@@ -244,8 +246,8 @@ class _LoginPageState extends State<LoginPage> {
                                   height: 24,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor:
-                                        AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
                                   ),
                                 )
                               : const Text(
@@ -280,7 +282,9 @@ class _LoginPageState extends State<LoginPage> {
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
-                            onPressed: state is AuthLoading ? null : _handleBiometricLogin,
+                            onPressed: state is AuthLoading
+                                ? null
+                                : _handleBiometricLogin,
                             icon: Icon(
                               _getBiometricIcon(),
                               color: Colors.white,
@@ -304,7 +308,8 @@ class _LoginPageState extends State<LoginPage> {
                       SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
-                          onPressed: state is AuthLoading ? null : _handleFaceLogin,
+                          onPressed:
+                              state is AuthLoading ? null : _handleFaceLogin,
                           icon: const Icon(Icons.face, color: Colors.white),
                           label: const Text(
                             'Login with Face Recognition',
@@ -327,7 +332,9 @@ class _LoginPageState extends State<LoginPage> {
                         children: [
                           TextButton(
                             onPressed: () {
-                              context.read<AuthBloc>().add(AuthGuestRequested());
+                              context
+                                  .read<AuthBloc>()
+                                  .add(AuthGuestRequested());
                             },
                             child: const Text(
                               'Continue as Guest',
@@ -341,7 +348,7 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           TextButton(
                             onPressed: () {
-                              Navigator.pushNamed(context, '/register');
+                              context.push('/register');
                             },
                             child: const Text(
                               'Create Account',

@@ -5,11 +5,13 @@
 // keeps the ProductBloc state lean and avoids unnecessary rebuilds in the
 // category rail widget.
 
+
+import 'package:Delicious_App/features/products/domain/usecases/get_categories_usecase.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/category.dart';
-import '../../domain/usecases/product_usecases.dart';
+
 
 // ── Events ────────────────────────────────────────────────────────────────────
 

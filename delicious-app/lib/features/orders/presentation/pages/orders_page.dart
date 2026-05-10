@@ -1,6 +1,7 @@
 import 'package:Delicious_App/features/orders/data/models/order_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../bloc/order_bloc.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 
@@ -101,7 +102,7 @@ class _OrdersPageState extends State<OrdersPage> {
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: () {
-              Navigator.pushReplacementNamed(context, '/home');
+              context.go('/home');
             },
             child: const Text('Start Shopping'),
           ),
@@ -123,7 +124,7 @@ class _OrderCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () {
-          Navigator.pushNamed(context, '/orders/${order.id}');
+          context.push('/orders/${order.id}');
         },
         borderRadius: BorderRadius.circular(16),
         child: Padding(

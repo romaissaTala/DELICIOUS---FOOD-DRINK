@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../../../auth/presentation/bloc/auth_bloc.dart';
 import '../bloc/payment_bloc.dart';
@@ -25,6 +26,9 @@ class _PaymentPageState extends State<PaymentPage> {
   late final WebViewController _webViewController;
   bool _isWebViewLoading = true;
 
+  // ✅ Store the sessionId from Chargily
+  String? _currentSessionId;
+
   @override
   void initState() {
     super.initState();
@@ -34,21 +38,55 @@ class _PaymentPageState extends State<PaymentPage> {
         NavigationDelegate(
           onPageStarted: (url) {
             setState(() => _isWebViewLoading = true);
+
+            // ✅ Extract sessionId from Chargily checkout URL
+            // Chargily URL format: https://pay.chargily.net/checkout/ch_xxxxx
+            if (url.contains('/checkout/')) {
+              final sessionId = url.split('/checkout/').last.split('?').first;
+              _currentSessionId = sessionId;
+            }
           },
           onPageFinished: (url) {
             setState(() => _isWebViewLoading = false);
 
-            // Check if payment completed
+            // ✅ Check if we're on success or failure page
             if (url.contains('/success') || url.contains('success')) {
-              context
-                  .read<PaymentBloc>()
-                  .add(const VerifyPaymentEvent('session_id'));
+              // Extract orderId from URL
+              final uri = Uri.parse(url);
+              final orderIdFromUrl = uri.queryParameters['orderId'];
+
+              // ✅ Use the REAL sessionId, not placeholder
+              if (_currentSessionId != null) {
+                context
+                    .read<PaymentBloc>()
+                    .add(VerifyPaymentEvent(_currentSessionId!));
+              } else if (orderIdFromUrl != null) {
+                // Fallback: verify by orderId
+                context
+                    .read<PaymentBloc>()
+                    .add(VerifyPaymentEvent(orderIdFromUrl));
+              }
             } else if (url.contains('/failure') || url.contains('fail')) {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                     content: Text('Payment failed. Please try again.')),
               );
+            }
+          },
+          // ✅ Handle redirects to success/failure pages
+          onUrlChange: (change) {
+            if (change.url != null) {
+              final url = change.url!;
+              if (url.contains('/success')) {
+                final uri = Uri.parse(url);
+                final orderIdFromUrl = uri.queryParameters['orderId'];
+                if (_currentSessionId != null) {
+                  context
+                      .read<PaymentBloc>()
+                      .add(VerifyPaymentEvent(_currentSessionId!));
+                }
+              }
             }
           },
         ),
@@ -66,12 +104,11 @@ class _PaymentPageState extends State<PaymentPage> {
       body: BlocConsumer<PaymentBloc, PaymentState>(
         listener: (context, state) {
           if (state is PaymentSuccess) {
-            Navigator.pushReplacementNamed(
-              context,
+            context.go(
               '/order-confirmation',
-              arguments: {
+              extra: {
                 'orderId': widget.orderId,
-                'orderNumber': widget.orderNumber
+                'orderNumber': widget.orderNumber,
               },
             );
           } else if (state is PaymentFailure) {
@@ -164,7 +201,6 @@ class _PaymentPageState extends State<PaymentPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Amount Card
           Card(
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -187,12 +223,10 @@ class _PaymentPageState extends State<PaymentPage> {
               ),
             ),
           ),
-
           const SizedBox(height: 24),
           const Text('Select Payment Method',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
-
           ...methods.map((method) => _PaymentMethodCard(
                 method: method,
                 onTap: () {
@@ -204,7 +238,6 @@ class _PaymentPageState extends State<PaymentPage> {
                       ));
                 },
               )),
-
           const SizedBox(height: 24),
           _buildSecurityNotice(),
         ],
@@ -235,6 +268,7 @@ class _PaymentPageState extends State<PaymentPage> {
   }
 }
 
+// ✅ Keep _PaymentMethodCard as is (it's correct)
 class _PaymentMethodCard extends StatelessWidget {
   final PaymentMethodModel method;
   final VoidCallback onTap;

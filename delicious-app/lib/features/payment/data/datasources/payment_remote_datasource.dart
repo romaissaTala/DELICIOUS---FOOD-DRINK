@@ -3,6 +3,7 @@ import 'package:Delicious_App/core/network/api_client.dart';
 import '../models/payment_method_model.dart';
 import '../models/payment_request_model.dart';
 
+
 abstract class PaymentRemoteDataSource {
   Future<List<PaymentMethodModel>> getPaymentMethods();
   Future<Map<String, dynamic>> createPaymentSession(PaymentRequestModel request);
@@ -10,24 +11,25 @@ abstract class PaymentRemoteDataSource {
 }
 
 class PaymentRemoteDataSourceImpl implements PaymentRemoteDataSource {
-  final DeliciousApiClient apiClient; // You already have this!
-  
-  PaymentRemoteDataSourceImpl({required this.apiClient});
+  final DeliciousApiClient apiClient;
+  final Dio dio;  // ← Add this if needed, or remove if not used
+
+  const PaymentRemoteDataSourceImpl({
+    required this.apiClient,
+    required this.dio,  // ← Required parameter
+  });
   
   @override
   Future<List<PaymentMethodModel>> getPaymentMethods() async {
     try {
       return await apiClient.getPaymentMethods();
     } catch (e) {
-      // Fallback list for development
       return _getFallbackPaymentMethods();
     }
   }
   
   @override
   Future<Map<String, dynamic>> createPaymentSession(PaymentRequestModel request) async {
-    // ✅ CORRECT: Call YOUR backend endpoint (not Chargily directly)
-    // The API key stays on your server, safe from exposure.
     final response = await apiClient.createPaymentSession(request.toJson());
     return response;
   }

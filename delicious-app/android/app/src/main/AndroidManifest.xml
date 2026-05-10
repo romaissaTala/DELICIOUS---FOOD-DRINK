@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
    
     <!-- Camera & Microphone -->
     <uses-permission android:name="android.permission.CAMERA" />
@@ -6,7 +7,9 @@
 
     <!-- Storage Permissions (Legacy for Android <10) -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
+        android:maxSdkVersion="32" 
+        tools:replace="android:maxSdkVersion" />
 
     <!-- Media Permissions (Android 13+) -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
@@ -17,7 +20,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
-    <!-- ✅ AJOUTEZ CES PERMISSIONS DE LOCALISATION -->
+    <!-- Location Permissions -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
@@ -25,6 +28,7 @@
     <uses-feature android:name="android.hardware.camera" android:required="true" />
     <uses-feature android:name="android.hardware.camera.flash" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+    
     <application
         android:label="Delicious_App"
         android:name="${applicationName}"

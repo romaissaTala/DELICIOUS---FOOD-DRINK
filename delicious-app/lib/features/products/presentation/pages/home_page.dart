@@ -4,6 +4,7 @@ import 'package:Delicious_App/features/products/domain/entities/product.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import '../bloc/product_bloc.dart';
 import '../bloc/category_bloc.dart';
 import '../widgets/gradient_scaffold.dart';
@@ -131,7 +132,7 @@ class _HomePageState extends State<HomePage> {
                 return CartIconButton(
                   key: _cartKey,
                   itemCount: itemCount,
-                  onTap: () => Navigator.pushNamed(context, '/cart'),
+                  onTap: () => context.push('/cart'),
                 );
               },
             ),
@@ -276,8 +277,7 @@ class _HomePageState extends State<HomePage> {
                     return _FeaturedCard(
                       product: product,
                       onTap: () {
-                        Navigator.pushNamed(
-                          context,
+                     context.push(
                           '/product/${product.id}',
                         );
                       },
@@ -333,7 +333,7 @@ class _HomePageState extends State<HomePage> {
             ));
       },
       onProductTap: (product) {
-        Navigator.pushNamed(context, '/product/${product.id}');
+        context.push('/product/${product.id}');
       },
     );
   }

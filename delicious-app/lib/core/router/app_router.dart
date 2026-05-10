@@ -1,4 +1,8 @@
+import 'package:Delicious_App/features/checkout/presentation/pages/checkout_page.dart';
+import 'package:Delicious_App/features/checkout/presentation/pages/order_confirmation_page.dart';
 import 'package:Delicious_App/features/payment/presentation/pages/payment_page.dart';
+import 'package:Delicious_App/features/profile/presentation/pages/face_setup_page.dart';
+import 'package:Delicious_App/features/profile/presentation/pages/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,11 +18,6 @@ import '../../features/cart/presentation/pages/cart_page.dart';
 import '../../features/orders/presentation/pages/orders_page.dart';
 import '../../features/orders/presentation/pages/order_detail_page.dart';
 import '../../features/orders/presentation/pages/delivery_tracking_page.dart';
-import '../../features/profile/presentation/pages/profile_page.dart';
-import '../../features/profile/presentation/pages/face_setup_page.dart';
-import '../../features/checkout/presentation/pages/checkout_page.dart';
-import '../../features/checkout/presentation/pages/payment_page.dart';
-import '../../features/checkout/presentation/pages/order_confirmation_page.dart';
 
 // ============================================
 // ROUTE NAMES
@@ -46,25 +45,27 @@ class RouteNames {
 String _redirectLogic(BuildContext context, GoRouterState state) {
   // Get auth state from Bloc
   final authState = context.read<AuthBloc>().state;
-  
+
   final isAuthenticated = authState is AuthAuthenticated;
   final isGuest = authState is AuthGuest;
   final isLoggedIn = isAuthenticated || isGuest;
-  
+
   final isGoingToAuthPage = state.matchedLocation == RouteNames.auth ||
-                            state.matchedLocation == RouteNames.login ||
-                            state.matchedLocation == RouteNames.register;
-  
+      state.matchedLocation == RouteNames.login ||
+      state.matchedLocation == RouteNames.register;
+
   // If logged in and trying to go to auth page -> redirect to home
   if (isLoggedIn && isGoingToAuthPage) {
     return RouteNames.home;
   }
-  
+
   // If not logged in and trying to go to protected page -> redirect to auth
-  if (!isLoggedIn && !isGoingToAuthPage && state.matchedLocation != RouteNames.auth) {
+  if (!isLoggedIn &&
+      !isGoingToAuthPage &&
+      state.matchedLocation != RouteNames.auth) {
     return RouteNames.auth;
   }
-  
+
   // Otherwise, no redirect
   return '';
 }
@@ -76,7 +77,6 @@ final GoRouter appRouter = GoRouter(
   initialLocation: RouteNames.auth,
   debugLogDiagnostics: true,
   redirect: _redirectLogic,
-  
   routes: [
     // ============================================
     // AUTH ROUTES
@@ -86,19 +86,19 @@ final GoRouter appRouter = GoRouter(
       name: 'auth',
       builder: (context, state) => const AuthPage(),
     ),
-    
+
     GoRoute(
       path: RouteNames.login,
       name: 'login',
       builder: (context, state) => const LoginPage(),
     ),
-    
+
     GoRoute(
       path: RouteNames.register,
       name: 'register',
       builder: (context, state) => const RegisterPage(),
     ),
-    
+
     // ============================================
     // MAIN APP ROUTES (with ShellRoute)
     // ============================================
@@ -123,14 +123,14 @@ final GoRouter appRouter = GoRouter(
             ),
           ],
         ),
-        
+
         // Cart
         GoRoute(
           path: RouteNames.cart,
           name: 'cart',
           builder: (context, state) => const CartPage(),
         ),
-        
+
         // Orders
         GoRoute(
           path: RouteNames.orders,
@@ -155,7 +155,7 @@ final GoRouter appRouter = GoRouter(
             ),
           ],
         ),
-        
+
         // Profile
         GoRoute(
           path: RouteNames.profile,
@@ -171,7 +171,7 @@ final GoRouter appRouter = GoRouter(
         ),
       ],
     ),
-    
+
     // ============================================
     // CHECKOUT FLOW
     // ============================================
@@ -180,10 +180,18 @@ final GoRouter appRouter = GoRouter(
       name: 'checkout',
       builder: (context, state) => const CheckoutPage(),
       routes: [
+        // In app_router.dart, update the payment route:
         GoRoute(
           path: 'payment',
           name: 'payment',
-          builder: (context, state) => const PaymentPage(),
+          builder: (context, state) {
+            final extra = state.extra as Map<String, dynamic>?;
+            return PaymentPage(
+              orderId: extra?['orderId'] as String? ?? '',
+              amount: (extra?['amount'] as num?)?.toDouble() ?? 0,
+              orderNumber: extra?['orderNumber'] as String? ?? '',
+            );
+          },
           routes: [
             GoRoute(
               path: 'confirmation',
@@ -208,9 +216,9 @@ final GoRouter appRouter = GoRouter(
 // ============================================
 class MainShell extends StatelessWidget {
   final Widget child;
-  
+
   const MainShell({super.key, required this.child});
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -240,7 +248,7 @@ class MainShell extends StatelessWidget {
       ),
     );
   }
-  
+
   int _getSelectedIndex(BuildContext context) {
     final location = GoRouterState.of(context).uri.path;
     if (location.startsWith(RouteNames.cart)) return 1;
@@ -248,7 +256,7 @@ class MainShell extends StatelessWidget {
     if (location.startsWith(RouteNames.profile)) return 3;
     return 0;
   }
-  
+
   void _onTabTapped(BuildContext context, int index) {
     switch (index) {
       case 0:
