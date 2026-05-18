@@ -1,7 +1,6 @@
 import { connectToDatabase } from '../../lib/db.js';
 import User from '../../models/User.js';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcryptjs';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -27,17 +26,16 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, message: 'Email already exists' });
     }
     
-    const hashedPassword = await bcrypt.hash(password, 10);
-    
+    // ✅ FIX: Don't hash here! Let the model's pre('save') middleware handle it
     const user = new User({
       email,
-      passwordHash: hashedPassword,
+      passwordHash: password,  // ← Pass plain password, model will hash it
       name,
       phone,
       isGuest: false
     });
     
-    await user.save();
+    await user.save();  // ← pre('save') middleware will hash it once
     
     const token = jwt.sign(
       { userId: user._id, email: user.email, role: user.role },
